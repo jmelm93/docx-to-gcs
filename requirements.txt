@@ -1,0 +1,20 @@
+# Server
+fastapi==0.100.1
+uvicorn[standard]==0.23.2
+
+# Cloud
+google-cloud-storage==2.14.0
+google-api-python-client==2.116.0
+
+# AI
+langchain==0.3.7
+langchain-openai==0.2.6
+
+# Models/Validation
+pydantic==2.9.2
+
+# Utils
+html2text==2024.2.26
+python-dotenv==1.0.1
+htmldocx==0.0.6
+Markdown==3.7
