@@ -76,6 +76,7 @@ The application provides an API endpoint `/convert/to-docx` that accepts a JSON 
       ```
       API_USERNAME=your_username
       API_PASSWORD=your_password
+      SERVICE_ACCOUNT_JSON=json string of GCP service account
       PORT=8080
       ENV=development # or production
       ```

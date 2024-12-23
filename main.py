@@ -1,5 +1,6 @@
 from src import create_app
 from uvicorn_config import config
+
 import uvicorn
 
 app = create_app()  

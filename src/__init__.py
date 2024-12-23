@@ -1,13 +1,16 @@
+import os
+from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends
 from fastapi.responses import PlainTextResponse
 from src.auth import authenticate
 from src.endpoints import router
 
+load_dotenv()
 
-def create_app():
-
-    app = FastAPI(dependencies=[Depends(authenticate)])
+def create_app():    
+    # app = FastAPI(dependencies=[Depends(authenticate)])
+    app = FastAPI()
 
     @app.get("/")
     async def root():

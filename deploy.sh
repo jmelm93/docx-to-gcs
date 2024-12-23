@@ -1,7 +1,7 @@
 #!/bin/bash
 
-APP_NAME="docx-writer-api"                       # name of the application
-REPO_NAME="docx-writer-api-repo"                 # Name of the Artifact Registry repository
+APP_NAME="docx-to-gcs-api"                       # name of the application
+REPO_NAME="docx-to-gcs-api-repo"                 # Name of the Artifact Registry repository
 PROJECT_ID="seo-workflows"                       # Google Cloud Project ID
 CURRENT_DATE_TIME=$(date +%Y-%m-%d-%H-%M)        # e.g. 2020-01-01-12-00
 BUILD_TAG="build_${CURRENT_DATE_TIME}"           # Build Tag: e.g., build_2022-07-10-04-01
@@ -44,12 +44,7 @@ echo "--------------------------------------------------------------------------
 
 gcloud run deploy ${APP_NAME} \
     --set-env-vars "\
-        OPENAI_API_KEY=${OPENAI_API_KEY},\
-        LLM_MODEL=${LLM_MODEL},\
-        LLM_TEMPERATURE=${LLM_TEMPERATURE},\
-        PROXY_HOST=${PROXY_HOST},\
-        PROXY_USERNAME=${PROXY_USERNAME},\
-        PROXY_PASSWORD=${PROXY_PASSWORD},\
+        SERVICE_ACCOUNT_JSON=${SERVICE_ACCOUNT_JSON},\
         API_USERNAME=${API_USERNAME},\
         API_PASSWORD=${API_PASSWORD}" \
     --platform managed \

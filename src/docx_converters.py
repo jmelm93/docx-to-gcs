@@ -2,8 +2,12 @@ import pathlib
 import datetime
 import markdown
 import textwrap
+import os
+import json
 from io import BytesIO
+from dotenv import load_dotenv
 from google.cloud import storage
+from google.oauth2 import service_account
 from google.cloud.storage import Blob
 from htmldocx import HtmlToDocx
 from docx import Document
@@ -11,6 +15,20 @@ from docx.oxml import parse_xml
 from docx.shared import Inches, RGBColor, Pt
 from docx.oxml.ns import nsdecls
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+# # clear the environment variables before loading the .env file
+# for key in ["SERVICE_ACCOUNT_JSON", "API_USERNAME", "API_PASSWORD"]:
+#     if key in os.environ:
+#         del os.environ[key]
+
+# load_dotenv()
+
+service_account_json_str = os.getenv("SERVICE_ACCOUNT_JSON")
+
+print("os env:", os.environ)
+print("\n\n")
+print('service_account_json_str:', service_account_json_str)
+
     
 def set_cell_borders(cell, color="000000"):
     tcPr = cell._element.get_or_add_tcPr()
@@ -94,14 +112,26 @@ def html_to_docx(query, html_content):
     modify_docx_formatting(doc, f'{full_filepath_no_extension}.docx')
 
 
-def html_to_docx_gcs(query, html_content, service_account_filename='service-account.json', bucket_name='content-maps'):
-    # Construct the full path to the service account file based on the project root
-    service_account_path = pathlib.Path(__file__).parent.parent / service_account_filename
+def get_gcs_client_from_env():
+    # Load the JSON from the environment variable
+    service_account_json_str = os.getenv("SERVICE_ACCOUNT_JSON")
+    if not service_account_json_str:
+        raise ValueError("SERVICE_ACCOUNT_JSON environment variable not found")
+    try:
+         service_account_info = json.loads(service_account_json_str)
+    except json.JSONDecodeError:
+        raise ValueError("Failed to decode SERVICE_ACCOUNT_JSON as valid JSON")
 
+    # Create the credential object
+    creds = service_account.Credentials.from_service_account_info(service_account_info)
+
+    # Create and return storage client
+    return storage.Client(credentials=creds)
+
+
+def html_to_docx_gcs(html_content, bucket_name='content-maps'):
     # Construct the filename
-    filename = query.replace(' ', '_')  
-    filename = ''.join(e for e in filename if e.isalnum()) 
-    filename += f"_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    filename = f"export-{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     filename += '.docx'
     
     # Create Document object
@@ -118,7 +148,8 @@ def html_to_docx_gcs(query, html_content, service_account_filename='service-acco
     doc_stream.seek(0)
 
     # Google Cloud Storage client
-    storage_client = storage.Client.from_service_account_json(service_account_path)
+    # storage_client = storage.Client.from_service_account_json(service_account_path)
+    storage_client = get_gcs_client_from_env()
     bucket = storage_client.bucket(bucket_name)
     blob = Blob(filename, bucket)
 
@@ -129,7 +160,7 @@ def html_to_docx_gcs(query, html_content, service_account_filename='service-acco
     return blob.public_url
 
 
-def markdown_to_docx_gcs(query, markdown_content, service_account_filename='service-account.json', bucket_name='content-maps'):
+def markdown_to_docx_gcs(markdown_content, bucket_name='content-maps'):
     """
     Converts Markdown content to a DOCX document and uploads it to Google Cloud Storage.
 
@@ -148,9 +179,7 @@ def markdown_to_docx_gcs(query, markdown_content, service_account_filename='serv
 
     # Reuse the html_to_docx_gcs logic
     return html_to_docx_gcs(
-        query=query,
         html_content=html_content,
-        service_account_filename=service_account_filename,
         bucket_name=bucket_name
     )
 
